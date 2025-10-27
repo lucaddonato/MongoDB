@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Votação Presidencial 2026</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; text-align: center; background:#f2f2f2; margin:0; padding:0; }
+    header { background-color:#009c3b; color:#ffcc29; padding:20px; font-size:2em; font-weight:bold; text-shadow:2px 2px #000; }
+    main { margin:20px auto; padding:20px; background:white; border-radius:10px; width:90%; max-width:700px; box-shadow:0 5px 15px rgba(0,0,0,0.2); }
+    select, button { padding:10px; font-size:1em; margin:10px; border-radius:5px; border:1px solid #ccc; }
+    button { background-color:#ffcc29; color:#009c3b; border:none; cursor:pointer; font-weight:bold; }
+    button:hover { background-color:#ffd633; }
+    .candidatos img { width:100px; height:100px; border-radius:50%; margin:10px; border:3px solid #009c3b; cursor:pointer; }
+    canvas { margin-top:20px; }
+  </style>
+</head>
+<body>
+  <header>votação presidencial brasil 2026</header>
+  <main>
+    <div class="candidatos">
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSKE-5cakZTgri90uIUhRRfr1M_ZizXW3N-Uw&s" alt="bolosaro mito" onclick="selecionar('bolosaro mito')">
+      <img src="https://ichef.bbci.co.uk/ace/ws/640/cpsprodpb/15966/production/_100722488_1980-lula-fichado-no-dops.png.webp" alt="lula ladrao" onclick="selecionar('lula ladrao')">
+      <img src="https://m.media-amazon.com/images/I/51j22PZAYsL._AC_UF894,1000_QL80_.jpg" alt="trump" onclick="selecionar('trump')">
+      <img src="https://cdn.dicionariopopular.com/imagens/hue-br-huehuehue-og.jpg" alt="caneta azul" onclick="selecionar('caneta azul')">
+      <img src="https://cdn.dicionariopopular.com/imagens/hue-br-huehuehue-og.jpg" alt="venomextreme" onclick="selecionar('venomextreme')">
+      <img src="https://cdn.dicionariopopular.com/imagens/hue-br-huehuehue-og.jpg" alt="everson zoio" onclick="selecionar('everson zoio')">
+    </div>
+
+    <select id="candidato">
+      <option value="bolosaro mito">bolosaro mito</option>
+      <option value="lula ladrao">lula ladrao</option>
+      <option value="trump">trump</option>
+      <option value="caneta azul">caneta azul</option>
+      <option value="venomextreme">venomextreme</option>
+      <option value="everson zoio">everson zoio</option>
+    </select>
+
+    <br>
+    <button onclick="votar()">votar</button>
+
+    <h2>gráfico de votos</h2>
+    <canvas id="grafico" width="400" height="200"></canvas>
+  </main>
+
+  <script>
+    let grafico = null;
+
+    function selecionar(nome) {
+      document.getElementById('candidato').value = nome;
+    }
+
+    async function votar() {
+      const candidato = document.getElementById("candidato").value;
+      if (!candidato) { alert("selecione um candidato!"); return; }
+
+      await fetch("/votar", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ participante: candidato })
+      });
+
+      await carregarGrafico();
+    }
+
+    async function carregarGrafico() {
+      const resp = await fetch("/votos/presidencial_2026");
+      const data = await resp.json();
+      const nomes = data.map(p => p.nome);
+      const votos = data.map(p => p.total_votos);
+
+      const ctx = document.getElementById("grafico").getContext("2d");
+      if (grafico) grafico.destroy();
+
+      grafico = new Chart(ctx, {
+        type:"bar",
+        data:{ labels: nomes, datasets:[{ label:"votos", data:votos, backgroundColor:["#ff0000","#0000ff","#00ff00","#ffff00","#ff00ff","#00ffff"], borderColor:"#000", borderWidth:1 }] },
+        options:{ responsive:true, plugins:{legend:{display:false}, tooltip:{enabled:true}}, scales:{y:{beginAtZero:true}} }
+      });
+    }
+
+    carregarGrafico();
+  </script>
+</body>
+</html>
